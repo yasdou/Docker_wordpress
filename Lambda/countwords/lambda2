@@ -1,0 +1,28 @@
+#jan
+
+import json
+import urllib.parse
+import boto3
+print('Loading function')
+s3 = boto3.client('s3')
+def lambda_handler(event, context):
+    # Super useful documentation for this task
+    # AWS BOTO3 S3
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html
+    # Bucket name
+    bucket = "pythonwordcountnf"
+    # call list_objects on s3 to get latest object, returns only 1 object key when MaxKeys=1
+    response = s3.list_objects_v2(Bucket=bucket)
+    # Extract key name(name of .txt) from JSON response above
+    key = response["Contents"][-1]["Key"]
+    try:
+        # call get_object on s3 to retrieve file, using key and bucket from code above
+        response = s3.get_object(Bucket=bucket, Key=key)
+        # the code needed to make an array containing all individual words from the file
+        txtContent = response["Body"].read().decode("utf-8").split(" ")
+        # returning key(filename) and the length of the word array
+        return f"{key} contains {len(txtContent)} words."
+    except Exception as e:
+        print(e)
+        print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
+        raise e
